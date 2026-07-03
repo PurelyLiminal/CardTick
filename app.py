@@ -9,7 +9,7 @@ import requests
 
 app = Flask(__name__)
 POKEMON_API = "https://api.pokemontcg.io/v2/cards"
-API_KEY = ""  # optional free key from https://dev.pokemontcg.io
+API_KEY = "7f5dd6b6-45b1-42c8-ab83-83a95f8a9f48"  # optional free key from https://dev.pokemontcg.io
 
 
 PAGE = """<!DOCTYPE html>
