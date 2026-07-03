@@ -13,7 +13,7 @@ API_KEY = "7f5dd6b6-45b1-42c8-ab83-83a95f8a9f48"  # optional free key from https
 
 
 PAGE = """<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8">
+<html lang="en"><<meta name='impact-site-verification' value='0af14d3c-6cbf-4057-8613-42b197576e88'>><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CardTick</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
