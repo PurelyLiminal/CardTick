@@ -9,11 +9,11 @@ import requests
 
 app = Flask(__name__)
 POKEMON_API = "https://api.pokemontcg.io/v2/cards"
-API_KEY = "7f5dd6b6-45b1-42c8-ab83-83a95f8a9f48"  # optional free key from https://dev.pokemontcg.io
+API_KEY = "7f5dd6b6-45b1-42c8-ab83-83a95f8a9f48"
 
 
 PAGE = """<!DOCTYPE html>
-<html lang="en"><<meta name='impact-site-verification' value='0af14d3c-6cbf-4057-8613-42b197576e88'>><meta charset="UTF-8">
+<html lang="en"><head><meta name="impact-site-verification" value="0af14d3c-6cbf-4057-8613-42b197576e88"><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CardTick</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -285,6 +285,17 @@ PAGE = """<!DOCTYPE html>
 </body></html>"""
 
 
+AFFILIATE_BASE = "https://partner.tcgplayer.com/c/7455627/1780961/21018"
+
+
+def affiliate_link(url):
+    """Wrap a TCGplayer product URL in the affiliate redirect."""
+    if not url:
+        return None
+    from urllib.parse import quote
+    return f"{AFFILIATE_BASE}?u={quote(url, safe='')}"
+
+
 @app.route("/")
 def home():
     return PAGE
@@ -385,14 +396,15 @@ def price():
     card = data[0]
     tp = card.get("tcgplayer") or {}
     prices = tp.get("prices") or {}
+    order = ["normal", "holofoil", "reverseHolofoil", "unlimitedHolofoil", "1stEditionHolofoil", "1stEdition"]
     variant, p = None, {}
-    for key, vals in prices.items():
-        if isinstance(vals, dict) and vals.get("market"):
-            variant, p = key, vals
-            break
-    if not variant and prices:
-        variant = list(prices.keys())[0]
-        p = prices[variant] or {}
+    for key in order:
+        if isinstance(prices.get(key), dict) and prices[key].get("market"):
+            variant, p = key, prices[key]; break
+    if not variant:
+        for key, vals in prices.items():
+            if isinstance(vals, dict) and vals.get("market"):
+                variant, p = key, vals; break
 
     s = card.get("set") or {}
     release = s.get("releaseDate") or ""
@@ -407,7 +419,7 @@ def price():
         "market": p.get("market"),
         "low": p.get("low"),
         "high": p.get("high"),
-        "url": tp.get("url"),
+        "url": affiliate_link(tp.get("url")),
         "image": (card.get("images") or {}).get("large") or (card.get("images") or {}).get("small"),
         "source": "pokemontcg.io / tcgplayer",
     })
