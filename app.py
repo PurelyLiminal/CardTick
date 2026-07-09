@@ -302,12 +302,22 @@ PAGE = """<!DOCTYPE html>
 AFFILIATE_BASE = "https://partner.tcgplayer.com/c/7455627/1780961/21018"
 
 
-def affiliate_link(url):
-    """Wrap a TCGplayer product URL in the affiliate redirect."""
-    if not url:
+def affiliate_link(card_name, set_name=None):
+    """Wrap a real tcgplayer.com search URL in the Impact affiliate redirect.
+
+    The free data source returns prices.pokemontcg.io links, which Impact
+    rejects (destination must be on tcgplayer.com), so we build our own.
+    """
+    if not card_name:
         return None
-    from urllib.parse import quote
-    return f"{AFFILIATE_BASE}?u={quote(url, safe='')}"
+    from urllib.parse import quote, urlencode
+    query = card_name if not set_name else f"{card_name} {set_name}"
+    dest = "https://www.tcgplayer.com/search/pokemon/product?" + urlencode({
+        "productLineName": "pokemon",
+        "q": query,
+        "view": "grid",
+    })
+    return f"{AFFILIATE_BASE}?u={quote(dest, safe='')}"
 
 
 @app.route("/")
@@ -433,7 +443,7 @@ def price():
         "market": p.get("market"),
         "low": p.get("low"),
         "high": p.get("high"),
-        "url": affiliate_link(tp.get("url")),
+        "url": affiliate_link(card.get("name"), s.get("name")),
         "image": (card.get("images") or {}).get("large") or (card.get("images") or {}).get("small"),
         "source": "pokemontcg.io / tcgplayer",
     })
