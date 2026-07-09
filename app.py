@@ -54,6 +54,9 @@ PAGE = """<!DOCTYPE html>
   #more{display:none;margin:24px auto 0;background:var(--panel);border:1px solid var(--line);color:var(--text);
     padding:12px 28px;border-radius:12px;font-family:'Space Grotesk';font-weight:600;font-size:14px;cursor:pointer;}
   #more:hover{border-color:var(--teal);color:var(--teal);}
+  #back{display:none;margin:22px 0 4px;background:transparent;border:1px solid var(--line);color:var(--mute);
+    padding:9px 16px;border-radius:10px;font-family:'Space Mono';font-size:12.5px;cursor:pointer;}
+  #back:hover{border-color:var(--teal);color:var(--teal);}
   .groupgrid{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
   .gbox{position:relative;height:78px;border-radius:16px;overflow:hidden;cursor:pointer;border:1px solid var(--line);background:var(--panel2);}
   .gbox .bg{position:absolute;inset:0;background-size:cover;background-position:center 28%;filter:blur(7px) brightness(.45);transform:scale(1.2);transition:filter .2s;}
@@ -148,13 +151,16 @@ PAGE = """<!DOCTYPE html>
     </div>
     <div id="suggest"></div>
   </div>
-  <div class="chips" id="popular"><span class="lbl">popular</span></div>
-  <div style="font-family:'Space Mono';font-size:11px;color:var(--mute);letter-spacing:1px;text-transform:uppercase;margin-top:22px">browse by type</div>
-  <div class="groupgrid" id="groups"></div>
-  <div id="gridhead" style="font-family:'Space Mono';font-size:11px;color:var(--mute);letter-spacing:1px;text-transform:uppercase;margin-top:26px;margin-bottom:2px"></div>
-  <div id="grid"></div>
-  <button id="more" onclick="loadMore()">Load more</button>
+  <div id="browseview">
+    <div class="chips" id="popular"><span class="lbl">popular</span></div>
+    <div style="font-family:'Space Mono';font-size:11px;color:var(--mute);letter-spacing:1px;text-transform:uppercase;margin-top:22px">browse by type</div>
+    <div class="groupgrid" id="groups"></div>
+    <div id="gridhead" style="font-family:'Space Mono';font-size:11px;color:var(--mute);letter-spacing:1px;text-transform:uppercase;margin-top:26px;margin-bottom:2px"></div>
+    <div id="grid"></div>
+    <button id="more" onclick="loadMore()">Load more</button>
+  </div>
   <div id="status"></div>
+  <button id="back" onclick="goBack()">← Back to browsing</button>
   <div id="result">
     <div class="card">
       <img id="img" src="" alt="">
@@ -199,13 +205,21 @@ PAGE = """<!DOCTYPE html>
       const mn=document.createElement('div'); mn.className='mn'; mn.textContent=c.name;
       const mp=document.createElement('div'); mp.className='mp'; mp.textContent=c.market?'$'+c.market:'';
       d.append(img,mn,mp);
-      d.onclick=()=>{ $('q').value=c.name; window.scrollTo({top:0,behavior:'smooth'}); go(); };
+      d.onclick=()=>{ $('q').value=c.name; go(); window.scrollTo({top:0,behavior:'smooth'}); };
       grid.appendChild(d);
     });
   }
+  function showBrowse(){
+    $('browseview').style.display='block'; $('result').style.display='none';
+    $('back').style.display='none'; $('status').textContent='';
+  }
+  function showCard(){
+    $('browseview').style.display='none'; $('back').style.display='inline-block';
+  }
+  function goBack(){ showBrowse(); window.scrollTo({top:0,behavior:'smooth'}); }
   async function browse(key){
     curGroup=key; curPage=1; $('gridhead').textContent=GLABEL[key]||'';
-    $('result').style.display='none'; $('status').textContent=''; $('more').style.display='none';
+    showBrowse(); $('more').style.display='none';
     const grid=$('grid'); grid.innerHTML='<div class="ld">loading...</div>';
     try{ const r=await fetch('/browse?group='+key+'&page=1'); const cards=await r.json();
       grid.innerHTML=''; addCards(cards);
@@ -242,7 +256,7 @@ PAGE = """<!DOCTYPE html>
     try{
       const res=await fetch('/price?name='+encodeURIComponent(name)); const d=await res.json();
       if(d.error){ $('status').textContent=d.error; return; }
-      $('status').textContent='';
+      $('status').textContent=''; showCard();
       $('img').src=d.image||''; $('nm').textContent=d.card||name;
       $('set').textContent=(d.set||'')+(d.number?' · #'+d.number:'');
       const metas=[]; if(d.rarity)metas.push(d.rarity); if(d.year)metas.push('released '+d.year); if(d.artist)metas.push('art: '+d.artist);
